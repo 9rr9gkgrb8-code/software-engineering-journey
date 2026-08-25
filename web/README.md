@@ -1,8 +1,7 @@
-# vinext-starter
+# Forge Web Lab
 
-A clean full-stack starter running on
-[vinext](https://github.com/cloudflare/vinext), with optional Cloudflare D1 and
-Drizzle support.
+A local-first coding and responsible-AI lab for middle-school learners, built
+with [vinext](https://github.com/cloudflare/vinext).
 
 ## Prerequisites
 
@@ -90,8 +89,9 @@ actions tied to the current ChatGPT user. Leave public content anonymous.
 ## Useful Commands
 
 - `npm run dev`: start local development
+- `npm run dev:network`: share the beta on the same private home network
 - `npm run build`: verify the vinext build output
-- `npm test`: build the starter and verify its rendered loading skeleton
+- `npm test`: build Forge and run its product and safety checks
 - `npm run db:generate`: generate Drizzle migrations after schema changes
 
 ## Learn More

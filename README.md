@@ -27,18 +27,33 @@ executing student code, local progress, portfolio export/reset, responsible-AI
 instruction, assistant blueprinting, bounded SAD coaching and failure requests,
 and privacy-preserving learning-result reports.
 
-Still limited: there are no accounts, cloud sync, teacher dashboard, free-form code execution, production SAD service connection, or purchases. The SAD interface remains optional and falls back to local hints whenever a response is absent or invalid.
+Still limited: there are no accounts, cloud sync, teacher dashboard, free-form
+code execution, or purchases. The SAD interface is optional and falls back to
+verified local hints whenever SAD or its private local model is unavailable.
 
 ## Local SAD failure reporting
 
-`SadLearningReporter` sends only mission id, correctness, and attempt number to
-the loopback SAD result endpoint. It never sends the student's answer, name, or
-profile, and an outage never interrupts learning.
+`SadCoachClient` sends bounded quest text and the current answer transiently to
+SAD over loopback. The answer is never stored. `SadLearningReporter` stores
+only mission id, correctness, and attempt number. It never stores the student's
+answer, name, or profile, and an outage never interrupts learning.
 
 `SadFailureReporter` sends bounded, versioned failure evidence to SAD over
 loopback HTTP. Forge continues locally if SAD is offline or rejects a request.
 SAD acknowledges every accepted report as `pending_human_approval`; Forge has
 no API for approval, patching, export, merge, or deployment.
+
+## Family network access
+
+Set `FORGE_FAMILY_KEY` before starting the web app and enter the same private
+code in Forge. The key stays in browser session storage and is cleared when the
+browser session ends. The SAD bridge also enforces same-origin requests, a
+4 KiB request ceiling, and a family-wide request rate limit.
+
+The layered child-safety design was independently reimplemented after reviewing
+the fail-closed input/output pipeline used by `snflwr-ai/snflwr.ai`, the mastery
+approach in `skillcoco/skillcoco`, and OWASP's prompt-injection guidance. No
+third-party source code or branding was copied.
 
 ## Run
 

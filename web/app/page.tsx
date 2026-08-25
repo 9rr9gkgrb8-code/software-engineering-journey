@@ -32,6 +32,8 @@ export default function Home() {
   const [rules, setRules] = useState("Give one hint at a time. Do not give the final answer.");
   const [saved, setSaved] = useState(false);
   const [attempts, setAttempts] = useState<Record<string, number>>({});
+  const [sadConnected, setSadConnected] = useState(false);
+  const [familyKey, setFamilyKey] = useState("");
 
   useEffect(() => {
     try {
@@ -43,6 +45,12 @@ export default function Home() {
       if (value.attempts && typeof value.attempts === "object") setAttempts(value.attempts);
     } catch { /* Damaged local progress starts fresh. */ }
   }, []);
+  useEffect(() => { setFamilyKey(sessionStorage.getItem("forge-family-key") || ""); }, []);
+  const connectSad = async () => {
+    sessionStorage.setItem("forge-family-key", familyKey);
+    try { const response = await fetch("/api/sad", { headers: { "x-forge-family-key": familyKey } }); const value = await response.json(); setSadConnected(value.connected === true); }
+    catch { setSadConnected(false); }
+  };
 
   useEffect(() => {
     localStorage.setItem("forge-learning-v2", JSON.stringify({ complete, role, goal, rules, attempts }));
@@ -50,13 +58,20 @@ export default function Home() {
 
   const blueprint = useMemo(() => `You are a ${role || "helpful coach"}.\n\nYour job: ${goal || "help me learn"}.\n\nRules: ${rules || "Explain your thinking and keep me safe."}\n\nBefore answering, ask what I have already tried. Use middle-school-friendly language. Never ask for private information. If the topic could be unsafe or serious, tell me to ask a trusted adult. Remind me to check important facts because AI can be wrong.`, [role, goal, rules]);
 
-  const checkCode = () => {
+  const checkCode = async () => {
     const clean = (value: string) => value.replace(/\s+/g, " ").trim().toLowerCase();
     setAttempts(items => ({ ...items, [mission]: (items[mission] || 0) + 1 }));
-    if (missions[mission].answers.some(answer => clean(code) === clean(answer))) {
+    const correct = missions[mission].answers.some(answer => clean(code) === clean(answer));
+    if (correct) {
       setComplete((items) => items.includes(mission) ? items : [...items, mission]);
       setFeedback(`You forged it! ${missions[mission].why}`);
     } else setFeedback(`Good attempt. Hint: ${missions[mission].hint}`);
+    try {
+      const item = missions[mission];
+      const response = await fetch("/api/sad", { method: "POST", headers: { "Content-Type": "application/json", "x-forge-family-key": familyKey }, body: JSON.stringify({ mission_id: item.skill.toLowerCase(), lesson: item.why, prompt: item.prompt, student_answer: code, correct, attempt_number: (attempts[mission] || 0) + 1, hint: item.hint }) });
+      if (response.ok) { const result = await response.json(); setSadConnected(true); setFeedback(result.feedback); }
+      else setSadConnected(false);
+    } catch { setSadConnected(false); }
   };
 
   return <main>
@@ -77,12 +92,13 @@ export default function Home() {
         <h1>Don’t just use tech.<br/><em>Teach it what to do.</em></h1>
         <p className="lead">Learn Python, understand how AI helpers work, and design an assistant that helps without taking over your thinking.</p>
         <div className="actions"><button className="primary" onClick={() => setView("code")}>Start a code quest →</button><button className="secondary" onClick={() => setView("blueprint")}>Build an AI helper</button></div>
+        <div className="family-access"><label>Family access code<input type="password" value={familyKey} onChange={event => setFamilyKey(event.target.value.slice(0, 128))} autoComplete="off" /></label><button className="secondary" onClick={connectSad}>{sadConnected ? "SAD connected" : "Connect SAD coach"}</button></div>
         <p className="privacy-note">● No account. No public chat. Your progress stays on this device.</p>
       </div>
       <aside className="console-card">
         <div className="console-top"><span/><span/><span/><b>forge_lab.py</b></div>
         <pre><code><i># You are the builder.</i>{"\n"}<strong>idea</strong> = <q>"homework coach"</q>{"\n"}<strong>rules</strong> = [<q>"give hints"</q>,{"\n"}         <q>"protect privacy"</q>]{"\n\n"}<strong>if</strong> answer_looks_wrong:{"\n"}    check_it_again()</code></pre>
-        <div className="console-status"><span>READY TO BUILD</span><b>● SAFE MODE ON</b></div>
+        <div className="console-status"><span>{sadConnected ? "SAD COACH CONNECTED" : "BUILT-IN COACH READY"}</span><b>● SAFE MODE ON</b></div>
       </aside>
       <div className="path-grid">
         <button className="path coral" onClick={() => setView("code")}><span>PATH 01</span><h2>Speak Python</h2><p>Six tiny quests. Real patterns. Helpful feedback.</p><b>Begin →</b></button>
