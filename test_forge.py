@@ -11,7 +11,7 @@ import progress
 from curriculum import MISSIONS, get_mission
 from forge_app import ForgeCoach
 from sad_interface import build_coaching_request, validate_coaching_response
-from sad_interface import SadLearningReporter
+from sad_interface import SadCoachClient, SadLearningReporter
 
 
 class ForgeV1Tests(unittest.TestCase):
@@ -123,6 +123,15 @@ class ForgeV1Tests(unittest.TestCase):
     def test_learning_reporter_requires_loopback_sad(self):
         with self.assertRaises(ValueError):
             SadLearningReporter("https://example.com")
+
+    def test_coach_client_requires_loopback_sad(self):
+        with self.assertRaises(ValueError):
+            SadCoachClient("https://example.com")
+
+    def test_coaching_request_includes_only_bounded_mission_hint(self):
+        request = build_coaching_request(get_mission("loops"), "wrong", 1)
+        self.assertEqual(request["hint"], get_mission("loops").hint)
+        self.assertLessEqual(len(request["hint"]), 500)
 
     def test_learning_reporter_outage_never_blocks_learning(self):
         class Offline:

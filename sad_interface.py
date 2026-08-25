@@ -18,6 +18,7 @@ class CoachingRequest:
     student_answer: str
     answer_is_correct: bool
     attempt_number: int
+    hint: str
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -26,7 +27,7 @@ class CoachingRequest:
 def build_coaching_request(mission, answer: str, attempt_number: int) -> dict:
     if attempt_number < 1:
         raise ValueError("Attempt number must be positive.")
-    return CoachingRequest(PROTOCOL_VERSION, mission.mission_id, mission.lesson, mission.prompt, answer[:500], mission.check(answer), attempt_number).to_dict()
+    return CoachingRequest(PROTOCOL_VERSION, mission.mission_id, mission.lesson, mission.prompt, answer[:500], mission.check(answer), attempt_number, mission.hint).to_dict()
 
 
 def validate_coaching_response(response: dict) -> str:
@@ -76,7 +77,7 @@ class SadLearningReporter:
     def __init__(self, base_url="http://127.0.0.1:8765", timeout=2.0):
         if not base_url.startswith(("http://127.0.0.1:", "http://localhost:", "http://[::1]:")):
             raise ValueError("SAD must use a loopback HTTP address")
-        self.url = base_url.rstrip("/") + "/v1/forge/results"
+        self.url = base_url.rstrip("/") + "/v1/forge/learning-results"
         self.timeout = timeout
 
     def report(self, mission_id, correct, attempt_number):
@@ -96,4 +97,27 @@ class SadLearningReporter:
             result = json.load(response)
         if response.status not in (200, 202) or result.get("protocol_version") != PROTOCOL_VERSION:
             raise ValueError("SAD returned an invalid learning-result acknowledgement")
+        return result
+
+
+class SadCoachClient:
+    """Use SAD coaching over loopback while keeping Forge safe offline."""
+
+    def __init__(self, base_url="http://127.0.0.1:8765", timeout=3.0):
+        if not base_url.startswith(("http://127.0.0.1:", "http://localhost:", "http://[::1]:")):
+            raise ValueError("SAD must use a loopback HTTP address")
+        self.base_url = base_url.rstrip("/")
+        self.timeout = timeout
+
+    def health(self):
+        with urlopen(self.base_url + "/health", timeout=self.timeout) as response:
+            result = json.load(response)
+        return response.status == 200 and result.get("protocol_version") == PROTOCOL_VERSION
+
+    def __call__(self, payload):
+        request = Request(self.base_url + "/v1/forge/coach", data=json.dumps(payload).encode("utf-8"), headers={"Content-Type": "application/json"}, method="POST")
+        with urlopen(request, timeout=self.timeout) as response:
+            result = json.load(response)
+        if response.status != 200:
+            raise ValueError("SAD coaching is unavailable")
         return result

@@ -27,13 +27,16 @@ executing student code, local progress, portfolio export/reset, responsible-AI
 instruction, assistant blueprinting, bounded SAD coaching and failure requests,
 and privacy-preserving learning-result reports.
 
-Still limited: there are no accounts, cloud sync, teacher dashboard, free-form code execution, production SAD service connection, or purchases. The SAD interface remains optional and falls back to local hints whenever a response is absent or invalid.
+Still limited: there are no accounts, cloud sync, teacher dashboard, free-form
+code execution, or purchases. The SAD interface is optional and falls back to
+verified local hints whenever SAD or its private local model is unavailable.
 
 ## Local SAD failure reporting
 
-`SadLearningReporter` sends only mission id, correctness, and attempt number to
-the loopback SAD result endpoint. It never sends the student's answer, name, or
-profile, and an outage never interrupts learning.
+`SadCoachClient` sends bounded quest text and the current answer transiently to
+SAD over loopback. The answer is never stored. `SadLearningReporter` stores
+only mission id, correctness, and attempt number. It never stores the student's
+answer, name, or profile, and an outage never interrupts learning.
 
 `SadFailureReporter` sends bounded, versioned failure evidence to SAD over
 loopback HTTP. Forge continues locally if SAD is offline or rejects a request.

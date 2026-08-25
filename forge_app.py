@@ -2,7 +2,7 @@
 
 from curriculum import MISSIONS, get_mission
 from progress import load_progress, mark_complete
-from sad_interface import build_coaching_request, validate_coaching_response
+from sad_interface import SadCoachClient, SadFailureReporter, SadLearningReporter, build_coaching_request, validate_coaching_response
 
 
 class ForgeCoach:
@@ -61,7 +61,12 @@ def choose_mission():
 def main():
     print("Forge: learn Python by completing small missions.")
     print(f"Completed missions: {len(load_progress()['completed_missions'])}/{len(MISSIONS)}")
-    coach = ForgeCoach()
+    sad = SadCoachClient()
+    coach = ForgeCoach(sad_coach=sad, failure_reporter=SadFailureReporter(), learning_reporter=SadLearningReporter())
+    try:
+        print("SAD coaching: connected locally" if sad.health() else "SAD coaching: safe local fallback")
+    except OSError:
+        print("SAD coaching: safe local fallback")
     while True:
         mission = choose_mission()
         if mission is None:
