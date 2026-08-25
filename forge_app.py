@@ -6,9 +6,10 @@ from sad_interface import build_coaching_request, validate_coaching_response
 
 
 class ForgeCoach:
-    def __init__(self, sad_coach=None, failure_reporter=None):
+    def __init__(self, sad_coach=None, failure_reporter=None, learning_reporter=None):
         self.sad_coach = sad_coach
         self.failure_reporter = failure_reporter
+        self.learning_reporter = learning_reporter
 
     def evaluate(self, mission_id: str, answer: str, attempt_number: int) -> dict:
         mission = get_mission(mission_id)
@@ -36,6 +37,11 @@ class ForgeCoach:
             feedback = "You forged it! That answer is correct." if correct else f"Good attempt. Hint: {mission.hint}"
         if correct:
             mark_complete(mission_id)
+        if self.learning_reporter is not None:
+            try:
+                self.learning_reporter.report(mission_id, correct, attempt_number)
+            except (OSError, ValueError, TypeError):
+                pass
         return {"correct": correct, "feedback": feedback, "request": request}
 
 
