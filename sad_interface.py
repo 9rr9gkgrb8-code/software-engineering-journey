@@ -68,3 +68,32 @@ class SadFailureReporter:
         if result.get("status") != "pending_human_approval":
             raise ValueError("SAD bypassed the required human-approval state")
         return result
+
+
+class SadLearningReporter:
+    """Share bounded learning evidence with local SAD, never private profile data."""
+
+    def __init__(self, base_url="http://127.0.0.1:8765", timeout=2.0):
+        if not base_url.startswith(("http://127.0.0.1:", "http://localhost:", "http://[::1]:")):
+            raise ValueError("SAD must use a loopback HTTP address")
+        self.url = base_url.rstrip("/") + "/v1/forge/results"
+        self.timeout = timeout
+
+    def report(self, mission_id, correct, attempt_number):
+        if not isinstance(mission_id, str) or not mission_id or len(mission_id) > 80:
+            raise ValueError("Mission id must contain 1 to 80 characters")
+        if not isinstance(correct, bool) or not isinstance(attempt_number, int) or attempt_number < 1:
+            raise ValueError("Learning result is invalid")
+        payload = {
+            "protocol_version": PROTOCOL_VERSION,
+            "result_id": str(uuid.uuid4()),
+            "mission_id": mission_id,
+            "correct": correct,
+            "attempt_number": attempt_number,
+        }
+        request = Request(self.url, data=json.dumps(payload).encode("utf-8"), headers={"Content-Type": "application/json"}, method="POST")
+        with urlopen(request, timeout=self.timeout) as response:
+            result = json.load(response)
+        if response.status not in (200, 202) or result.get("protocol_version") != PROTOCOL_VERSION:
+            raise ValueError("SAD returned an invalid learning-result acknowledgement")
+        return result

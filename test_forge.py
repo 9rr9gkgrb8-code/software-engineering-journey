@@ -11,6 +11,7 @@ import progress
 from curriculum import MISSIONS, get_mission
 from forge_app import ForgeCoach
 from sad_interface import build_coaching_request, validate_coaching_response
+from sad_interface import SadLearningReporter
 
 
 class ForgeV1Tests(unittest.TestCase):
@@ -110,6 +111,24 @@ class ForgeV1Tests(unittest.TestCase):
     def test_unknown_mission_is_rejected(self):
         with self.assertRaises(ValueError):
             ForgeCoach().evaluate("unknown", "answer", 1)
+
+    def test_learning_result_is_reported_without_sharing_student_answer(self):
+        class Reporter:
+            def __init__(self): self.calls = []
+            def report(self, *args): self.calls.append(args)
+        reporter = Reporter()
+        ForgeCoach(learning_reporter=reporter).evaluate("variables", 'robot_name = "Bolt"', 2)
+        self.assertEqual(reporter.calls, [("variables", True, 2)])
+
+    def test_learning_reporter_requires_loopback_sad(self):
+        with self.assertRaises(ValueError):
+            SadLearningReporter("https://example.com")
+
+    def test_learning_reporter_outage_never_blocks_learning(self):
+        class Offline:
+            def report(self, *_args): raise OSError("offline")
+        result = ForgeCoach(learning_reporter=Offline()).evaluate("loops", "wrong", 1)
+        self.assertFalse(result["correct"])
 
 
 if __name__ == "__main__":

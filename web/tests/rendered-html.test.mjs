@@ -5,7 +5,7 @@ const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8")
 const layout = await readFile(new URL("../app/layout.tsx", import.meta.url), "utf8");
 
 test("teaches real Python foundations", () => {
-  for (const item of ["Variables", "Decisions", "Loops", "Functions"]) assert.match(page, new RegExp(item));
+  for (const item of ["Variables", "Decisions", "Loops", "Functions", "Lists", "Output"]) assert.match(page, new RegExp(item));
   assert.match(page, /Nothing runs here/);
 });
 test("teaches responsible AI assistant design", () => {
@@ -29,4 +29,9 @@ test("uses clean product metadata", () => {
 });
 test("source has no common encoding damage", () => {
   assert.doesNotMatch(page, /â|Ã|�/);
+});
+test("provides a private learner portfolio", () => {
+  assert.match(page, /Export my portfolio/);
+  assert.match(page, /Reset local progress/);
+  assert.match(page, /forge-portfolio\.json/);
 });
