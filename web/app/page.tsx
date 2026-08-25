@@ -33,6 +33,7 @@ export default function Home() {
   const [saved, setSaved] = useState(false);
   const [attempts, setAttempts] = useState<Record<string, number>>({});
   const [sadConnected, setSadConnected] = useState(false);
+  const [familyKey, setFamilyKey] = useState("");
 
   useEffect(() => {
     try {
@@ -44,7 +45,12 @@ export default function Home() {
       if (value.attempts && typeof value.attempts === "object") setAttempts(value.attempts);
     } catch { /* Damaged local progress starts fresh. */ }
   }, []);
-  useEffect(() => { fetch("/api/sad").then(response => response.json()).then(value => setSadConnected(value.connected === true)).catch(() => setSadConnected(false)); }, []);
+  useEffect(() => { setFamilyKey(sessionStorage.getItem("forge-family-key") || ""); }, []);
+  const connectSad = async () => {
+    sessionStorage.setItem("forge-family-key", familyKey);
+    try { const response = await fetch("/api/sad", { headers: { "x-forge-family-key": familyKey } }); const value = await response.json(); setSadConnected(value.connected === true); }
+    catch { setSadConnected(false); }
+  };
 
   useEffect(() => {
     localStorage.setItem("forge-learning-v2", JSON.stringify({ complete, role, goal, rules, attempts }));
@@ -62,7 +68,7 @@ export default function Home() {
     } else setFeedback(`Good attempt. Hint: ${missions[mission].hint}`);
     try {
       const item = missions[mission];
-      const response = await fetch("/api/sad", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mission_id: item.skill.toLowerCase(), lesson: item.why, prompt: item.prompt, student_answer: code, correct, attempt_number: (attempts[mission] || 0) + 1, hint: item.hint }) });
+      const response = await fetch("/api/sad", { method: "POST", headers: { "Content-Type": "application/json", "x-forge-family-key": familyKey }, body: JSON.stringify({ mission_id: item.skill.toLowerCase(), lesson: item.why, prompt: item.prompt, student_answer: code, correct, attempt_number: (attempts[mission] || 0) + 1, hint: item.hint }) });
       if (response.ok) { const result = await response.json(); setSadConnected(true); setFeedback(result.feedback); }
       else setSadConnected(false);
     } catch { setSadConnected(false); }
@@ -86,6 +92,7 @@ export default function Home() {
         <h1>Don’t just use tech.<br/><em>Teach it what to do.</em></h1>
         <p className="lead">Learn Python, understand how AI helpers work, and design an assistant that helps without taking over your thinking.</p>
         <div className="actions"><button className="primary" onClick={() => setView("code")}>Start a code quest →</button><button className="secondary" onClick={() => setView("blueprint")}>Build an AI helper</button></div>
+        <div className="family-access"><label>Family access code<input type="password" value={familyKey} onChange={event => setFamilyKey(event.target.value.slice(0, 128))} autoComplete="off" /></label><button className="secondary" onClick={connectSad}>{sadConnected ? "SAD connected" : "Connect SAD coach"}</button></div>
         <p className="privacy-note">● No account. No public chat. Your progress stays on this device.</p>
       </div>
       <aside className="console-card">

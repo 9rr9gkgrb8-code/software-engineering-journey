@@ -43,6 +43,18 @@ loopback HTTP. Forge continues locally if SAD is offline or rejects a request.
 SAD acknowledges every accepted report as `pending_human_approval`; Forge has
 no API for approval, patching, export, merge, or deployment.
 
+## Family network access
+
+Set `FORGE_FAMILY_KEY` before starting the web app and enter the same private
+code in Forge. The key stays in browser session storage and is cleared when the
+browser session ends. The SAD bridge also enforces same-origin requests, a
+4 KiB request ceiling, and a family-wide request rate limit.
+
+The layered child-safety design was independently reimplemented after reviewing
+the fail-closed input/output pipeline used by `snflwr-ai/snflwr.ai`, the mastery
+approach in `skillcoco/skillcoco`, and OWASP's prompt-injection guidance. No
+third-party source code or branding was copied.
+
 ## Run
 
 ```powershell

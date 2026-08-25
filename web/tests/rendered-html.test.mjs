@@ -42,4 +42,8 @@ test("connects to local SAD through a bounded server route", () => {
   assert.match(sadRoute, /result_id: crypto\.randomUUID/);
   assert.match(sadRoute, /student_answer: input\.student_answer\.slice\(0, 500\)/);
   assert.doesNotMatch(sadRoute, /name|school|password|profile/);
+  assert.match(sadRoute, /FORGE_FAMILY_KEY/);
+  assert.match(sadRoute, /MAX_BODY_BYTES/);
+  assert.match(sadRoute, /MAX_REQUESTS_PER_MINUTE/);
+  assert.match(sadRoute, /sameOrigin/);
 });
