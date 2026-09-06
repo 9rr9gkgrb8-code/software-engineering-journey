@@ -29,3 +29,21 @@ jobs:
           cache-dependency-path: web/package-lock.json
       - run: npm ci
       - run: npm test
+  windows-launcher:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Parse beta PowerShell launchers
+        shell: pwsh
+        run: |
+          $failed = $false
+          foreach ($path in @("start_forge_beta.ps1", "stop_forge_beta.ps1")) {
+            $tokens = $null
+            $errors = $null
+            [System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path $path), [ref]$tokens, [ref]$errors) | Out-Null
+            if ($errors.Count -gt 0) {
+              $errors | ForEach-Object { Write-Error "$path`: $($_.Message)" }
+              $failed = $true
+            }
+          }
+          if ($failed) { exit 1 }
