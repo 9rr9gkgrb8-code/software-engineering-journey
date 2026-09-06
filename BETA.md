@@ -14,7 +14,19 @@ This beta is limited to 5–10 invited family testers. It is not a public launch
 
 ## Start
 
-Use two different long random values for the family key and runtime key.
+On Windows, the launcher generates and preserves two different cryptographic secrets, runs the test gates, starts both services and displays the private-network address and family access code.
+
+```powershell
+.\start_forge_beta.ps1
+```
+
+Stop both recorded processes after testing:
+
+```powershell
+.\stop_forge_beta.ps1
+```
+
+Manual startup remains available when diagnosing a launcher problem. Use two different long random values for the family key and runtime key.
 
 ```powershell
 $env:FORGE_RUNTIME_KEY = "runtime-secret"
