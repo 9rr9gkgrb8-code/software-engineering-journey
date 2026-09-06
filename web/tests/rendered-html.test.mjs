@@ -7,7 +7,10 @@ const sadRoute = await readFile(new URL("../app/api/sad/route.ts", import.meta.u
 
 test("teaches real Python foundations", () => {
   for (const item of ["Variables", "Decisions", "Loops", "Functions", "Lists", "Output"]) assert.match(page, new RegExp(item));
-  assert.match(page, /Nothing runs here/);
+  assert.match(page, /Run mission/);
+  assert.match(page, /Interactive code world/);
+  assert.match(page, /Validated commands only/);
+  assert.doesNotMatch(page, /eval\(|new Function/);
 });
 test("teaches responsible AI assistant design", () => {
   for (const item of ["Give it a role", "Add useful context", "Set boundaries", "Test the answer"]) assert.match(page, new RegExp(item));
