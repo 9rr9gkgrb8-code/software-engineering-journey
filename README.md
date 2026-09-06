@@ -24,6 +24,7 @@ progress and student-facing safety boundaries.
 
 Implemented: six matching Python quests, deterministic answer checks without
 executing student code, a responsive interactive code-world feedback scene,
+an allowlisted fail-closed visual command translator,
 local progress, portfolio export/reset, responsible-AI
 instruction, assistant blueprinting, bounded SAD coaching and failure requests,
 and privacy-preserving learning-result reports.
