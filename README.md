@@ -76,6 +76,7 @@ evidence plus allowlisted world commands. The first executable policy covers
 the variables mission; unsupported missions fail closed.
 
 For the invited 5–10 learner rollout, follow [BETA.md](BETA.md). The beta is private-network only and requires separate family and runtime secrets.
+On Windows, `start_forge_beta.ps1` generates the secrets, runs every beta gate and starts both services; `stop_forge_beta.ps1` stops only the recorded beta processes.
 
 ## Test
 
