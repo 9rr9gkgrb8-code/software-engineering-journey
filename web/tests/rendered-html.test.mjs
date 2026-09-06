@@ -4,13 +4,20 @@ import { readFile } from "node:fs/promises";
 const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
 const layout = await readFile(new URL("../app/layout.tsx", import.meta.url), "utf8");
 const sadRoute = await readFile(new URL("../app/api/sad/route.ts", import.meta.url), "utf8");
+const runtimeRoute = await readFile(new URL("../app/api/forge/run/route.ts", import.meta.url), "utf8");
 
 test("teaches real Python foundations", () => {
   for (const item of ["Variables", "Decisions", "Loops", "Functions", "Lists", "Output"]) assert.match(page, new RegExp(item));
   assert.match(page, /Run mission/);
   assert.match(page, /Interactive code world/);
-  assert.match(page, /Validated commands only/);
+  assert.match(page, /VALIDATED COMMANDS/);
   assert.doesNotMatch(page, /eval\(|new Function/);
+});
+test("connects the executable mission through a fail-closed runtime route", () => {
+  assert.match(page, /\/api\/forge\/run/); assert.match(page, /RUNTIME VERIFIED/);
+  assert.match(runtimeRoute, /127\.0\.0\.1:8780/); assert.match(runtimeRoute, /FORGE_RUNTIME_KEY/); assert.match(runtimeRoute, /FORGE_FAMILY_KEY/);
+  assert.match(runtimeRoute, /AbortSignal\.timeout\(2_000\)/); assert.match(runtimeRoute, /MAX_BODY_BYTES/); assert.match(runtimeRoute, /MAX_REQUESTS_PER_MINUTE/); assert.match(runtimeRoute, /commandTypes/);
+  assert.doesNotMatch(runtimeRoute, /eval\(|new Function/);
 });
 test("teaches responsible AI assistant design", () => {
   for (const item of ["Give it a role", "Add useful context", "Set boundaries", "Test the answer"]) assert.match(page, new RegExp(item));

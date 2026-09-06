@@ -75,6 +75,8 @@ interprets an allowlisted AST without `exec` or `eval`, and returns versioned
 evidence plus allowlisted world commands. The first executable policy covers
 the variables mission; unsupported missions fail closed.
 
+For the invited 5–10 learner rollout, follow [BETA.md](BETA.md). The beta is private-network only and requires separate family and runtime secrets.
+
 ## Test
 
 ```powershell
