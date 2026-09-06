@@ -2,3 +2,6 @@ __pycache__/
 *.pyc
 forge_progress.json
 .env
+.forge-beta.env.json
+.forge-beta.pids.json
+.forge-beta-*.log
