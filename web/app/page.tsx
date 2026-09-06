@@ -39,6 +39,7 @@ export default function Home() {
   const [familyKey, setFamilyKey] = useState("");
   const [worldState, setWorldState] = useState<WorldState>("ready");
   const [worldCommands, setWorldCommands] = useState<readonly WorldCommand[]>([{ type: "reset" }]);
+  const [runtimeConnected, setRuntimeConnected] = useState(false);
 
   useEffect(() => {
     try {
@@ -66,8 +67,15 @@ export default function Home() {
   const checkCode = async () => {
     const clean = (value: string) => value.replace(/\s+/g, " ").trim().toLowerCase();
     setAttempts(items => ({ ...items, [mission]: (items[mission] || 0) + 1 }));
-    const correct = missions[mission].answers.some(answer => clean(code) === clean(answer));
-    const commands = compileMissionResult({ missionId: missions[mission].skill.toLowerCase(), correct }) as readonly WorldCommand[];
+    let correct = missions[mission].answers.some(answer => clean(code) === clean(answer));
+    let commands = compileMissionResult({ missionId: missions[mission].skill.toLowerCase(), correct }) as readonly WorldCommand[];
+    if (mission === 0) {
+      try {
+        const execution = await fetch("/api/forge/run", { method: "POST", headers: { "Content-Type": "application/json", "x-forge-family-key": familyKey }, body: JSON.stringify({ mission_id: "variables", source: code }) });
+        if (execution.ok) { const evidence = await execution.json(); correct = evidence.status === "passed"; commands = evidence.commands; setRuntimeConnected(true); }
+        else setRuntimeConnected(false);
+      } catch { setRuntimeConnected(false); }
+    }
     setWorldCommands(commands);
     if (correct) {
       setWorldState("success");
@@ -130,7 +138,7 @@ export default function Home() {
           <div className="companion" aria-hidden="true"><span className="ears">▲ ▲</span><b>F</b></div>
           <div className="speech">{worldCommands.find(command => command.type === "say")?.value || "Write code to wake the world."}</div>
           <div className="world-ground"/>
-          <div className="world-status"><b>{worldState === "success" ? "WORLD UPDATED" : worldState === "retry" ? "TRY AGAIN" : "READY"}</b><span>Validated commands only</span></div>
+          <div className="world-status"><b>{worldState === "success" ? "WORLD UPDATED" : worldState === "retry" ? "TRY AGAIN" : "READY"}</b><span>{runtimeConnected ? "RUNTIME VERIFIED" : "VALIDATED COMMANDS"}</span></div>
         </div>
         <div className="brief"><span className="number">0{mission + 1}</span><p className="eyebrow">YOUR QUEST</p><h2>{missions[mission].title}</h2><p>{missions[mission].prompt}</p><div className="coach"><b>Coach feedback</b><p aria-live="polite">{feedback}</p></div></div>
         <div className="editor"><div className="editor-top">mission.py <span>SAFE PRACTICE</span></div><textarea value={code} onChange={e => { setCode(e.target.value); if (worldState !== "ready") { setWorldState("ready"); setWorldCommands([{ type: "reset" }]); } }} aria-label="Python answer" spellCheck={false} placeholder="# Type your answer here"/><div className="editor-actions"><button className="primary" onClick={checkCode}>Run mission ▶</button><button className="reset-code" onClick={() => { setCode(""); setWorldState("ready"); setWorldCommands([{ type: "reset" }]); setFeedback("World reset. Try a fresh idea."); }}>Reset</button></div></div>
