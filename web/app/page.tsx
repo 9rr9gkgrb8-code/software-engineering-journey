@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { compileMissionResult } from "./world-engine.mjs";
 
 type View = "launch" | "code" | "ai" | "blueprint" | "portfolio";
 type Mission = { title: string; skill: string; prompt: string; answers: string[]; hint: string; why: string };
 type WorldState = "ready" | "success" | "retry";
+type WorldCommand = { type: string; actor?: string; target?: string; value?: string };
 
 const missions: Mission[] = [
   { title: "Name Your Bot", skill: "Variables", prompt: "Save the name Bolt in a variable called robot_name.", answers: ['robot_name = "bolt"', "robot_name = 'bolt'"], hint: "Text goes inside quotation marks.", why: "Variables give programs a place to remember information." },
@@ -36,6 +38,7 @@ export default function Home() {
   const [sadConnected, setSadConnected] = useState(false);
   const [familyKey, setFamilyKey] = useState("");
   const [worldState, setWorldState] = useState<WorldState>("ready");
+  const [worldCommands, setWorldCommands] = useState<readonly WorldCommand[]>([{ type: "reset" }]);
 
   useEffect(() => {
     try {
@@ -64,6 +67,8 @@ export default function Home() {
     const clean = (value: string) => value.replace(/\s+/g, " ").trim().toLowerCase();
     setAttempts(items => ({ ...items, [mission]: (items[mission] || 0) + 1 }));
     const correct = missions[mission].answers.some(answer => clean(code) === clean(answer));
+    const commands = compileMissionResult({ missionId: missions[mission].skill.toLowerCase(), correct }) as readonly WorldCommand[];
+    setWorldCommands(commands);
     if (correct) {
       setWorldState("success");
       setComplete((items) => items.includes(mission) ? items : [...items, mission]);
@@ -116,19 +121,19 @@ export default function Home() {
     {view === "code" && <section className="workspace">
       <p className="eyebrow">PATH 01 · PYTHON FOUNDATIONS</p><h1>Small code. Big ideas.</h1>
       <p className="lead">Write a Python pattern, run the safe mission check, and watch your code change the world.</p>
-      <div className="tabs">{missions.map((item, i) => <button key={item.title} className={mission === i ? "selected" : ""} onClick={() => { setMission(i); setCode(""); setWorldState("ready"); setFeedback("Try it yourself first. A hint is ready if you need it."); }}><small>{complete.includes(i) ? "✓ COMPLETE" : item.skill}</small>{item.title}</button>)}</div>
+      <div className="tabs">{missions.map((item, i) => <button key={item.title} className={mission === i ? "selected" : ""} onClick={() => { setMission(i); setCode(""); setWorldState("ready"); setWorldCommands([{ type: "reset" }]); setFeedback("Try it yourself first. A hint is ready if you need it."); }}><small>{complete.includes(i) ? "✓ COMPLETE" : item.skill}</small>{item.title}</button>)}</div>
       <div className="lab">
         <div className={`code-world ${worldState}`} aria-label="Interactive code world" aria-live="polite">
           <div className="world-sky"><span className="cloud one"/><span className="cloud two"/></div>
           <div className="world-object crystal" aria-hidden="true">◆</div>
           <div className="world-object gate" aria-hidden="true">▥</div>
           <div className="companion" aria-hidden="true"><span className="ears">▲ ▲</span><b>F</b></div>
-          <div className="speech">{worldState === "success" ? "Quest complete!" : worldState === "retry" ? "That did not unlock it yet." : "Write code to wake the world."}</div>
+          <div className="speech">{worldCommands.find(command => command.type === "say")?.value || "Write code to wake the world."}</div>
           <div className="world-ground"/>
           <div className="world-status"><b>{worldState === "success" ? "WORLD UPDATED" : worldState === "retry" ? "TRY AGAIN" : "READY"}</b><span>Validated commands only</span></div>
         </div>
         <div className="brief"><span className="number">0{mission + 1}</span><p className="eyebrow">YOUR QUEST</p><h2>{missions[mission].title}</h2><p>{missions[mission].prompt}</p><div className="coach"><b>Coach feedback</b><p aria-live="polite">{feedback}</p></div></div>
-        <div className="editor"><div className="editor-top">mission.py <span>SAFE PRACTICE</span></div><textarea value={code} onChange={e => { setCode(e.target.value); if (worldState !== "ready") setWorldState("ready"); }} aria-label="Python answer" spellCheck={false} placeholder="# Type your answer here"/><div className="editor-actions"><button className="primary" onClick={checkCode}>Run mission ▶</button><button className="reset-code" onClick={() => { setCode(""); setWorldState("ready"); setFeedback("World reset. Try a fresh idea."); }}>Reset</button></div></div>
+        <div className="editor"><div className="editor-top">mission.py <span>SAFE PRACTICE</span></div><textarea value={code} onChange={e => { setCode(e.target.value); if (worldState !== "ready") { setWorldState("ready"); setWorldCommands([{ type: "reset" }]); } }} aria-label="Python answer" spellCheck={false} placeholder="# Type your answer here"/><div className="editor-actions"><button className="primary" onClick={checkCode}>Run mission ▶</button><button className="reset-code" onClick={() => { setCode(""); setWorldState("ready"); setWorldCommands([{ type: "reset" }]); setFeedback("World reset. Try a fresh idea."); }}>Reset</button></div></div>
       </div>
     </section>}
 
