@@ -1,13 +1,13 @@
 # Forge
 
-Forge is a beginner-friendly coding coach for middle-school learners. It turns short Python lessons into missions, checks answers without executing student code, gives hints, and stores progress locally.
+Forge is a beginner-friendly coding coach for middle-school learners. It turns short Python lessons into missions, checks answers without executing student code, gives hints, shows validated results in an interactive code world, and stores progress locally.
 
 ## V2 learning platform
 
 1. Choose a mission.
 2. Read one short lesson and example.
-3. Enter an answer.
-4. Receive deterministic, encouraging feedback.
+3. Enter an answer and run the mission check.
+4. Watch the validated result change the mission world and receive deterministic feedback.
 5. Ask for a hint or try again.
 6. Save completion locally.
 
@@ -23,7 +23,8 @@ progress and student-facing safety boundaries.
 ## Implemented and intentionally limited
 
 Implemented: six matching Python quests, deterministic answer checks without
-executing student code, local progress, portfolio export/reset, responsible-AI
+executing student code, a responsive interactive code-world feedback scene,
+local progress, portfolio export/reset, responsible-AI
 instruction, assistant blueprinting, bounded SAD coaching and failure requests,
 and privacy-preserving learning-result reports.
 
