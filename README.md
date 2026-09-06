@@ -63,6 +63,18 @@ third-party source code or branding was copied.
 python forge_app.py
 ```
 
+Run the optional loopback-only Python-subset mission runtime:
+
+```powershell
+$env:FORGE_RUNTIME_KEY = "use-a-long-random-local-key"
+python forge_runtime_http.py
+```
+
+The runtime listens only on `127.0.0.1:8780`, accepts at most 4 KiB per request,
+interprets an allowlisted AST without `exec` or `eval`, and returns versioned
+evidence plus allowlisted world commands. The first executable policy covers
+the variables mission; unsupported missions fail closed.
+
 ## Test
 
 ```powershell
