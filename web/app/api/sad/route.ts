@@ -23,7 +23,7 @@ async function validKey(request: Request) {
   return difference === 0;
 }
 
-function withinRateLimit(request: Request) {
+function withinRateLimit() {
   const key = "family";
   const now = Date.now(); const current = requests.get(key);
   if (!current || current.reset <= now) { requests.set(key, { count: 1, reset: now + 60_000 }); return true; }
@@ -44,7 +44,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   if (!sameOrigin(request)) return denied(403, "origin_rejected");
   if (!(await validKey(request))) return denied(401, "family_access_required");
-  if (!withinRateLimit(request)) return denied(429, "slow_down");
+  if (!withinRateLimit()) return denied(429, "slow_down");
   const declaredLength = Number(request.headers.get("content-length") || "0");
   if (declaredLength > MAX_BODY_BYTES) return denied(413, "request_too_large");
   try {

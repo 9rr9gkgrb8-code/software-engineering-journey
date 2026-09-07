@@ -42,9 +42,34 @@ test("source has no common encoding damage", () => {
   assert.doesNotMatch(page, /â|Ã|�/);
 });
 test("provides a private learner portfolio", () => {
-  assert.match(page, /Export my portfolio/);
+  assert.match(page, /Export my progress/);
   assert.match(page, /Reset local progress/);
   assert.match(page, /forge-portfolio\.json/);
+});
+
+test("provides guided lessons before code practice", () => {
+  for (const item of ["LESSON", "EXAMPLE", "Start the practice", "Review lesson", "Show hint", "Next lesson"]) assert.match(page, new RegExp(item));
+  assert.match(page, /concept:/);
+  assert.match(page, /steps:/);
+});
+
+test("makes AI lessons interactive and persistent", () => {
+  assert.match(page, /Check answer/);
+  assert.match(page, /aiComplete/);
+  assert.match(page, /forge-learning-v3/);
+  assert.match(page, /Correct\. \+75 XP/);
+});
+
+test("gives every visible button an interaction", () => {
+  const buttonTags = [...page.matchAll(/<button\b[\s\S]*?<\/button>/g)].map((match) => match[0]);
+  assert.ok(buttonTags.length >= 20);
+  for (const button of buttonTags) assert.match(button, /onClick=/);
+});
+
+test("handles empty mission and SAD connection actions", () => {
+  assert.match(page, /Type your Python answer before running the mission/);
+  assert.match(page, /Enter the family access code first/);
+  assert.match(page, /Built-in coaching remains ready/);
 });
 test("connects to local SAD through a bounded server route", () => {
   assert.match(page, /SAD COACH CONNECTED/);
