@@ -19,14 +19,14 @@ This should remain a draft until runtime integration is explicitly approved. Pro
 
 ### SAD-Core has an integration-debt problem
 
-SAD-Core still has four older open, CI-green PRs that touch related readiness concerns:
+SAD-Core still has four open, CI-green PRs that touch related readiness concerns:
 
 - #32 — cloud/mobile private-alpha and signup scaffolding
 - #35 — production-readiness probe
 - #39 — runtime readiness and beta UX
 - #40 — governed end-to-end journey observability
 
-All four currently have successful CI on their recorded heads, but they are long-lived branches based on earlier mainline states. Green CI on separate branches does not prove that the combined system is green. The next move should be reconciliation, not another overlapping readiness branch.
+PRs #32 and #35 are based on the pre-lesson mainline (`d9c527e`), while #39 and #40 are based on the current lesson-bearing mainline (`c7af3df`). All four have successful CI on their recorded heads, but green CI on separate branches does not prove that the combined system is green. The next move should be reconciliation, not another overlapping readiness branch.
 
 ## What I learned
 
